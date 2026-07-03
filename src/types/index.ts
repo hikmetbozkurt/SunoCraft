@@ -48,6 +48,7 @@ export interface EditorState {
   outputFormat: OutputFormat;
   renderState: RenderState;
   isUploadModalOpen: boolean;
+  activeTrackId: string | null;
 }
 
 // ─── Editor Actions ────────────────────────────────────────────
@@ -60,4 +61,6 @@ export type EditorAction =
   | { type: 'SET_FORMAT'; payload: OutputFormat }
   | { type: 'SET_RENDER_STATE'; payload: Partial<RenderState> }
   | { type: 'TOGGLE_UPLOAD_MODAL'; payload?: boolean }
+  | { type: 'SET_ACTIVE_TRACK'; payload: string | null }
+  | { type: 'SPLIT_TRACK'; payload: { id: string; splitTime: number; firstPartId: string; secondPartId: string } }
   | { type: 'RESET' };

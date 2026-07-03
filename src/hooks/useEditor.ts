@@ -52,6 +52,17 @@ export function useEditor() {
     [dispatch]
   );
 
+  const setActiveTrack = useCallback(
+    (id: string | null) => dispatch({ type: 'SET_ACTIVE_TRACK', payload: id }),
+    [dispatch]
+  );
+
+  const splitTrack = useCallback(
+    (id: string, splitTime: number, firstPartId: string, secondPartId: string) =>
+      dispatch({ type: 'SPLIT_TRACK', payload: { id, splitTime, firstPartId, secondPartId } }),
+    [dispatch]
+  );
+
   const reset = useCallback(() => dispatch({ type: 'RESET' }), [dispatch]);
 
   // Computed
@@ -61,6 +72,8 @@ export function useEditor() {
   );
 
   const sortedTracks = [...state.tracks].sort((a, b) => a.order - b.order);
+
+  const activeTrack = state.tracks.find(t => t.id === state.activeTrackId) || null;
 
   const canRender =
     state.tracks.length > 0 &&
@@ -79,10 +92,13 @@ export function useEditor() {
     setFormat,
     setRenderState,
     toggleUploadModal,
+    setActiveTrack,
+    splitTrack,
     reset,
     // Computed
     totalDuration,
     sortedTracks,
+    activeTrack,
     canRender,
   };
 }

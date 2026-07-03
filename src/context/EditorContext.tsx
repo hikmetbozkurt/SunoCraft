@@ -17,6 +17,7 @@ export const initialEditorState: EditorState = {
   outputFormat: '.mp4',
   renderState: initialRenderState,
   isUploadModalOpen: false,
+  activeTrackId: null,
 };
 
 // ─── Reducer ───────────────────────────────────────────────────
@@ -30,14 +31,27 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
         ...track,
         order: maxOrder + 1 + i,
       }));
-      return { ...state, tracks: [...state.tracks, ...newTracks] };
+      // Auto-select the first added track if none is active
+      const firstNewTrackId = newTracks[0]?.id || null;
+      return {
+        ...state,
+        tracks: [...state.tracks, ...newTracks],
+        activeTrackId: state.activeTrackId || firstNewTrackId,
+      };
     }
 
     case 'REMOVE_TRACK': {
       const filtered = state.tracks.filter(t => t.id !== action.payload);
       // Re-index orders
       const reindexed = filtered.map((t, i) => ({ ...t, order: i }));
-      return { ...state, tracks: reindexed };
+      const isActiveRemoved = state.activeTrackId === action.payload;
+      return {
+        ...state,
+        tracks: reindexed,
+        activeTrackId: isActiveRemoved
+          ? (reindexed[0]?.id || null)
+          : state.activeTrackId,
+      };
     }
 
     case 'REORDER_TRACKS':
@@ -70,6 +84,46 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
         ...state,
         isUploadModalOpen: action.payload ?? !state.isUploadModalOpen,
       };
+
+    case 'SET_ACTIVE_TRACK':
+      return { ...state, activeTrackId: action.payload };
+
+    case 'SPLIT_TRACK': {
+      const { id, splitTime, firstPartId, secondPartId } = action.payload;
+      const targetIndex = state.tracks.findIndex(t => t.id === id);
+      if (targetIndex === -1) return state;
+
+      const target = state.tracks[targetIndex];
+
+      const ext = target.name.substring(target.name.lastIndexOf('.'));
+      const baseName = target.name.substring(0, target.name.lastIndexOf('.'));
+
+      const part1 = {
+        ...target,
+        id: firstPartId,
+        name: `${baseName} (Kısım 1)${ext}`,
+        trimEnd: splitTime,
+      };
+
+      const part2 = {
+        ...target,
+        id: secondPartId,
+        name: `${baseName} (Kısım 2)${ext}`,
+        trimStart: splitTime,
+        previewUrl: URL.createObjectURL(target.file),
+      };
+
+      const newTracks = [...state.tracks];
+      newTracks.splice(targetIndex, 1, part1, part2);
+
+      const reindexed = newTracks.map((t, i) => ({ ...t, order: i }));
+
+      return {
+        ...state,
+        tracks: reindexed,
+        activeTrackId: firstPartId,
+      };
+    }
 
     case 'RESET':
       // Revoke all object URLs
