@@ -27,7 +27,7 @@ export function UploadModal() {
       const unsupported = fileArray.filter(f => !isSupportedFile(f.name));
 
       if (unsupported.length > 0) {
-        setError(`Desteklenmeyen dosya: ${unsupported.map(f => f.name).join(', ')}`);
+        setError(`Unsupported file format: ${unsupported.map(f => f.name).join(', ')}`);
       }
 
       const audioFiles = fileArray.filter(f => isAudioFile(f.name));
@@ -51,7 +51,7 @@ export function UploadModal() {
               previewUrl: URL.createObjectURL(file),
             });
           } catch {
-            setError(prev => `${prev ? prev + '\n' : ''}${file.name} okunamadı.`);
+            setError(prev => `${prev ? prev + '\n' : ''}${file.name} could not be read.`);
           }
         }
         if (newTracks.length > 0) addTracks(newTracks);
@@ -124,9 +124,9 @@ export function UploadModal() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-semibold text-white">Dosya Yükle</h2>
+            <h2 className="text-xl font-semibold text-white">Upload Files</h2>
             <p className="text-sm text-zinc-400 mt-1">
-              Ses dosyaları (.mp3, .wav) ve arka plan görseli (.png, .jpg, .gif)
+              Audio files (.mp3, .wav) and background media (.png, .jpg, .gif)
             </p>
           </div>
           <button
@@ -170,7 +170,7 @@ export function UploadModal() {
 
           <div className="text-center">
             <p className="text-sm font-medium text-zinc-300">
-              {isDragging ? 'Dosyaları bırakın...' : 'Sürükleyin veya tıklayın'}
+              {isDragging ? 'Drop files here...' : 'Drag & drop files or click to browse'}
             </p>
             <p className="text-xs text-zinc-500 mt-1">
               MP3, WAV, OGG, PNG, JPG, GIF
@@ -184,7 +184,7 @@ export function UploadModal() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                <span className="text-sm text-zinc-300">Dosyalar işleniyor...</span>
+                <span className="text-sm text-zinc-300">Processing files...</span>
               </div>
             </div>
           )}
@@ -211,11 +211,11 @@ export function UploadModal() {
         <div className="mt-6 flex items-center gap-4">
           <div className="flex items-center gap-2 text-xs text-zinc-500">
             <div className="w-2 h-2 rounded-full bg-cyan-500/60" />
-            Ses dosyaları listeye eklenir
+            Audio files are added as tracks
           </div>
           <div className="flex items-center gap-2 text-xs text-zinc-500">
             <div className="w-2 h-2 rounded-full bg-violet-500/60" />
-            Görseller arka plan olur
+            Images are set as background
           </div>
         </div>
       </div>

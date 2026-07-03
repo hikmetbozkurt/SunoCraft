@@ -36,12 +36,12 @@ export function Header() {
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
               <span className="text-xs text-zinc-400">
-                <span className="text-zinc-200 font-semibold">{trackCount}</span> parça
+                <span className="text-zinc-200 font-semibold">{trackCount}</span> {trackCount === 1 ? 'track' : 'tracks'}
               </span>
             </div>
             <div className="w-px h-4 bg-white/10" />
             <div className="text-xs text-zinc-400">
-              Toplam: <span className="text-zinc-200 font-mono font-semibold">{formatDuration(totalDuration)}</span>
+              Total: <span className="text-zinc-200 font-mono font-semibold">{formatDuration(totalDuration)}</span>
             </div>
           </>
         )}
@@ -59,11 +59,11 @@ export function Header() {
             </svg>
           }
         >
-          Dosya Ekle
+          Add File
         </Button>
         {trackCount > 0 && (
           <Button variant="ghost" size="sm" onClick={reset}>
-            Sıfırla
+            Reset
           </Button>
         )}
       </div>

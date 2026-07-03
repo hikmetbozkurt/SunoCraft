@@ -50,7 +50,7 @@ export function getAudioDuration(file: File): Promise<number> {
 
     audio.addEventListener('error', () => {
       URL.revokeObjectURL(url);
-      reject(new Error(`"${file.name}" dosyası okunamadı.`));
+      reject(new Error(`"${file.name}" could not be read.`));
     });
 
     audio.src = url;

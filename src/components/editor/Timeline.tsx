@@ -53,9 +53,9 @@ export function Timeline() {
             </div>
           </div>
           <div>
-            <p className="text-sm font-medium text-zinc-400">Henüz parça eklenmedi</p>
+            <p className="text-sm font-medium text-zinc-400">No tracks added yet</p>
             <p className="text-xs text-zinc-600 mt-1">
-              Ses dosyalarınızı yükleyin ve düzenlemeye başlayın
+              Upload audio files to start editing
             </p>
           </div>
           <button
@@ -65,7 +65,7 @@ export function Timeline() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
-            Dosya Yükle
+            Upload Files
           </button>
         </div>
       </div>
@@ -76,10 +76,10 @@ export function Timeline() {
     <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
-          Zaman Çizelgesi
+          Timeline
         </h2>
         <span className="text-[11px] text-zinc-600">
-          Sürükleyerek sıralayın
+          Drag to reorder
         </span>
       </div>
       <DragDropProvider onDragEnd={handleDragEnd}>

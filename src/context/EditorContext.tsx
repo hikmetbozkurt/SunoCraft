@@ -97,22 +97,20 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
 
       const ext = target.name.substring(target.name.lastIndexOf('.'));
       const baseName = target.name.substring(0, target.name.lastIndexOf('.'));
-
       const part1 = {
         ...target,
         id: firstPartId,
-        name: `${baseName} (Kısım 1)${ext}`,
+        name: `${baseName} (Part 1)${ext}`,
         trimEnd: splitTime,
       };
 
       const part2 = {
         ...target,
         id: secondPartId,
-        name: `${baseName} (Kısım 2)${ext}`,
+        name: `${baseName} (Part 2)${ext}`,
         trimStart: splitTime,
         previewUrl: URL.createObjectURL(target.file),
       };
-
       const newTracks = [...state.tracks];
       newTracks.splice(targetIndex, 1, part1, part2);
 

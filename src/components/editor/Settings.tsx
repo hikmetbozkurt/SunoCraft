@@ -9,8 +9,8 @@ import { formatDuration } from '../../utils/fileHelpers';
 
 const FORMAT_OPTIONS: { value: OutputFormat; label: string; icon: string }[] = [
   { value: '.mp4', label: 'MP4 Video', icon: '🎬' },
-  { value: '.mp3', label: 'MP3 Ses', icon: '🎵' },
-  { value: '.wav', label: 'WAV Ses', icon: '🎧' },
+  { value: '.mp3', label: 'MP3 Audio', icon: '🎵' },
+  { value: '.wav', label: 'WAV Audio', icon: '🎧' },
 ];
 
 export function Settings() {
@@ -48,7 +48,6 @@ export function Settings() {
   const handleRender = useCallback(async () => {
     if (!loaded) {
       await load();
-      // After load, user needs to click again
       return;
     }
     await render();
@@ -57,13 +56,13 @@ export function Settings() {
   const statusMessage = (() => {
     switch (renderState.status) {
       case 'loading-ffmpeg':
-        return 'FFmpeg motoru yükleniyor...';
+        return 'Loading FFmpeg engine...';
       case 'processing':
-        return 'İşleniyor...';
+        return 'Processing...';
       case 'completed':
-        return 'Tamamlandı! ✨';
+        return 'Completed! ✨';
       case 'error':
-        return renderState.error || 'Bir hata oluştu';
+        return renderState.error || 'An error occurred';
       default:
         return null;
     }
@@ -75,7 +74,7 @@ export function Settings() {
         {/* Section: Output Format */}
         <div>
           <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">
-            Çıktı Formatı
+            Output Format
           </h3>
           <div className="space-y-1.5">
             {FORMAT_OPTIONS.map(opt => (
@@ -119,7 +118,7 @@ export function Settings() {
         {outputFormat === '.mp4' && (
           <div>
             <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">
-              Arka Plan Görseli
+              Background Image
             </h3>
             {backgroundMedia ? (
               <div className="relative group rounded-xl overflow-hidden border border-white/[0.06]">
@@ -151,7 +150,7 @@ export function Settings() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a2.25 2.25 0 002.25-2.25V5.25a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 003.75 21z" />
                   </svg>
                 </div>
-                <span className="text-xs text-zinc-500">Görsel ekle (PNG, JPG, GIF)</span>
+                <span className="text-xs text-zinc-500">Add image (PNG, JPG, GIF)</span>
               </button>
             )}
             <input
@@ -163,7 +162,7 @@ export function Settings() {
             />
             {outputFormat === '.mp4' && !backgroundMedia && (
               <p className="text-[10px] text-amber-400/60 mt-2">
-                ⚠ MP4 çıktısı için arka plan görseli önerilir
+                ⚠ Background image is recommended for MP4 output
               </p>
             )}
           </div>
@@ -173,15 +172,15 @@ export function Settings() {
         {state.tracks.length > 0 && (
           <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 space-y-2">
             <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-              Özet
+              Summary
             </h3>
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between">
-                <span className="text-zinc-500">Parça sayısı</span>
+                <span className="text-zinc-500">Track count</span>
                 <span className="text-zinc-300 font-semibold">{state.tracks.length}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">Toplam süre</span>
+                <span className="text-zinc-500">Total duration</span>
                 <span className="text-zinc-300 font-mono font-semibold">
                   {formatDuration(totalDuration)}
                 </span>
@@ -192,7 +191,7 @@ export function Settings() {
               </div>
               {backgroundMedia && (
                 <div className="flex justify-between">
-                  <span className="text-zinc-500">Arka plan</span>
+                  <span className="text-zinc-500">Background</span>
                   <span className="text-zinc-300 truncate ml-2">{backgroundMedia.name}</span>
                 </div>
               )}
@@ -215,7 +214,7 @@ export function Settings() {
                 <div className="text-2xl">🎉</div>
                 <p className="text-sm text-emerald-400 font-medium">{statusMessage}</p>
                 <Button variant="primary" size="md" onClick={downloadOutput}>
-                  ⬇ İndir
+                  ⬇ Download
                 </Button>
               </div>
             )}
@@ -237,12 +236,12 @@ export function Settings() {
             className="w-full mb-2"
             onClick={load}
           >
-            🔧 FFmpeg Motorunu Yükle
+            🔧 Load FFmpeg Engine
           </Button>
         )}
         {loading && (
           <Button variant="secondary" size="md" className="w-full mb-2" loading disabled>
-            FFmpeg Yükleniyor...
+            Loading FFmpeg...
           </Button>
         )}
         <Button
@@ -260,7 +259,7 @@ export function Settings() {
             ) : undefined
           }
         >
-          {isProcessing ? 'İşleniyor...' : outputFormat === '.mp4' ? 'Videoyu Oluştur' : 'Sesi Oluştur'}
+          {isProcessing ? 'Processing...' : outputFormat === '.mp4' ? 'Generate Video' : 'Generate Audio'}
         </Button>
       </div>
     </div>

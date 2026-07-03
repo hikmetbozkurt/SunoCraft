@@ -180,7 +180,7 @@ export function WaveformEditor() {
     
     // Validate split boundary
     if (splitTime <= activeTrack.trimStart || splitTime >= activeTrack.trimEnd) {
-      alert('Lütfen kesme işlemini kırpılmış alanın içinden yapın.');
+      alert('Please perform the split operation inside the trimmed region.');
       return;
     }
 
@@ -231,7 +231,7 @@ export function WaveformEditor() {
           <svg className="w-12 h-12 mx-auto stroke-zinc-700" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
           </svg>
-          <p className="text-sm font-medium">Dalga boyunu görüntülemek için bir parça seçin</p>
+          <p className="text-sm font-medium">Select a track to view the waveform</p>
         </div>
       </div>
     );
@@ -240,21 +240,21 @@ export function WaveformEditor() {
   return (
     <div className="flex-1 flex flex-col bg-zinc-900/20 p-6 border-b border-white/[0.04] animate-fade-in relative select-none">
       {/* Title / Info */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
-            Dalga Boyu Editörü (Waveform)
+      <div className="flex items-center justify-between mb-4 gap-4">
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold text-zinc-200 truncate max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl" title={activeTrack.name}>
+            {activeTrack.name}
           </h2>
-          <p className="text-xs text-zinc-500 mt-1 truncate max-w-md">
-            Düzenlenen Parça: <span className="text-violet-400 font-medium">{activeTrack.name}</span>
+          <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mt-1">
+            Waveform Editor
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-shrink-0">
           <Button variant="secondary" size="sm" onClick={resetTrimRegion}>
-            Seçimi Sıfırla
+            Reset Selection
           </Button>
           <Button variant="secondary" size="sm" onClick={playSelection}>
-            Seçimi Oynat
+            Play Selection
           </Button>
         </div>
       </div>
@@ -270,7 +270,7 @@ export function WaveformEditor() {
         
         {/* Right Click Info Hint */}
         <div className="absolute top-2 right-2 text-[10px] text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity">
-          💡 Kesme / Bölme için sağ tıklayın
+          💡 Right-click inside region to split track
         </div>
       </div>
 
@@ -282,6 +282,7 @@ export function WaveformEditor() {
             variant="secondary"
             className="w-10 h-10 p-0 rounded-xl"
             onClick={togglePlay}
+            title={isPlaying ? 'Pause' : 'Play'}
             icon={
               isPlaying ? (
                 <svg className="w-5 h-5 text-zinc-300" fill="currentColor" viewBox="0 0 24 24">
@@ -294,24 +295,26 @@ export function WaveformEditor() {
               )
             }
           >
-            Play
+            {/* Removed text to prevent overflow */}
           </Button>
           <Button
             variant="secondary"
             className="w-10 h-10 p-0 rounded-xl"
             onClick={stopPlayback}
+            title="Stop"
             icon={
               <svg className="w-5 h-5 text-zinc-300" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M6 6h12v12H6z" />
               </svg>
             }
           >
-            Stop
+            {/* Removed text to prevent overflow */}
           </Button>
           <Button
             variant="ghost"
             className="w-10 h-10 p-0 rounded-xl"
             onClick={toggleMute}
+            title={isMuted ? 'Unmute' : 'Mute'}
             icon={
               isMuted ? (
                 <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -324,7 +327,7 @@ export function WaveformEditor() {
               )
             }
           >
-            Mute
+            {/* Removed text to prevent overflow */}
           </Button>
         </div>
 
@@ -338,7 +341,7 @@ export function WaveformEditor() {
         {/* Zoom Control */}
         <div className="flex items-center gap-3">
           <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">
-            Yakınlaştır (Zoom)
+            Zoom
           </span>
           <input
             type="range"
@@ -362,20 +365,20 @@ export function WaveformEditor() {
             onClick={handleSplitTrack}
             className="w-full text-left px-4 py-2 text-xs font-medium text-zinc-200 hover:bg-violet-600 hover:text-white transition-colors flex items-center gap-2"
           >
-            ✂ Şarkıyı Buradan Böl
+            ✂ Split Track Here
           </button>
           <button
             onClick={playSelection}
             className="w-full text-left px-4 py-2 text-xs font-medium text-zinc-200 hover:bg-violet-600 hover:text-white transition-colors flex items-center gap-2"
           >
-            ▶ Seçimi Oynat
+            ▶ Play Selection
           </button>
           <div className="h-px bg-white/5 my-1" />
           <button
             onClick={resetTrimRegion}
             className="w-full text-left px-4 py-2 text-xs font-medium text-zinc-400 hover:bg-red-600 hover:text-white transition-colors flex items-center gap-2"
           >
-            🔄 Kırpmayı Sıfırla
+            🔄 Reset Selection
           </button>
         </div>
       )}
