@@ -10,6 +10,7 @@ import {
   getMediaType,
 } from '../../utils/fileHelpers';
 import type { AudioTrack, BackgroundMedia } from '../../types';
+import { TRACK_COLORS } from '../../types';
 
 export function UploadModal() {
   const { state, addTracks, setBackground, toggleUploadModal } = useEditor();
@@ -49,6 +50,15 @@ export function UploadModal() {
               order: 0, // Will be set by reducer
               size: file.size,
               previewUrl: URL.createObjectURL(file),
+              volume: 1,
+              gain: 0,
+              pan: 0,
+              fadeIn: 0,
+              fadeOut: 0,
+              muted: false,
+              solo: false,
+              locked: false,
+              color: TRACK_COLORS[(state.tracks.length + newTracks.length) % TRACK_COLORS.length],
             });
           } catch {
             setError(prev => `${prev ? prev + '\n' : ''}${file.name} could not be read.`);
@@ -192,6 +202,7 @@ export function UploadModal() {
 
         {/* Hidden file input */}
         <input
+          id="upload-modal-file-input"
           ref={fileInputRef}
           type="file"
           multiple

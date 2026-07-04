@@ -1,16 +1,13 @@
 import { EditorProvider } from './context/EditorProvider';
-import { Header } from './components/layout/Header';
-import { MainLayout } from './components/layout/MainLayout';
-import { UploadModal } from './components/shared/UploadModal';
+import { ToastProvider } from './context/ToastContext';
+import { AppInner } from './AppInner';
 
 function App() {
   return (
     <EditorProvider>
-      <div className="flex flex-col h-screen bg-zinc-950">
-        <Header />
-        <MainLayout />
-        <UploadModal />
-      </div>
+      <ToastProvider>
+        <AppInner />
+      </ToastProvider>
     </EditorProvider>
   );
 }
