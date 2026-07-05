@@ -17,12 +17,24 @@ export function AudioMeter({ analyserRef, isPlaying }: AudioMeterProps) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-    analyser.getByteFrequencyData(dataArray);
+    // Resize canvas dynamically to match layout CSS dimensions and device pixel ratio
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      const dpr = window.devicePixelRatio || 1;
+      const w = Math.floor(rect.width * dpr);
+      const h = Math.floor(rect.height * dpr);
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+      }
+    }
 
     const width = canvas.width;
     const height = canvas.height;
     ctx.clearRect(0, 0, width, height);
+
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(dataArray);
 
     // Calculate RMS levels for L and R (approximate with frequency bands)
     const half = Math.floor(dataArray.length / 2);
@@ -36,13 +48,14 @@ export function AudioMeter({ analyserRef, isPlaying }: AudioMeterProps) {
     const levelL = Math.min(1, (sumL / half / 255) * 2);
     const levelR = Math.min(1, (sumR / half / 255) * 2);
 
-    const barWidth = 6;
-    const gap = 3;
-    const x1 = (width - barWidth * 2 - gap) / 2;
+    // Compute dynamic bar width and gap based on actual canvas dimensions
+    const barWidth = Math.max(2, Math.floor(width * 0.35));
+    const gap = Math.max(1, Math.floor(width * 0.1));
+    const x1 = Math.floor((width - barWidth * 2 - gap) / 2);
     const x2 = x1 + barWidth + gap;
 
     // Draw meter backgrounds
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
     ctx.fillRect(x1, 0, barWidth, height);
     ctx.fillRect(x2, 0, barWidth, height);
 
@@ -68,7 +81,7 @@ export function AudioMeter({ analyserRef, isPlaying }: AudioMeterProps) {
     const drawPeak = (x: number, level: number) => {
       const y = height - level * height;
       ctx.fillStyle = level > 0.85 ? '#ef4444' : level > 0.6 ? '#facc15' : '#10b981';
-      ctx.fillRect(x, y - 2, barWidth, 2);
+      ctx.fillRect(x, Math.max(0, y - 2), barWidth, 2);
     };
 
     drawPeak(x1, levelL);
@@ -87,13 +100,12 @@ export function AudioMeter({ analyserRef, isPlaying }: AudioMeterProps) {
   }, [isPlaying, draw]);
 
   return (
-    <div className="w-8 flex-shrink-0 bg-black/30 border-l border-white/[0.04] flex items-center justify-center py-2">
+    <div className="w-6 h-full bg-zinc-950/80 border-l border-white/[0.06] flex items-center justify-center py-2 flex-shrink-0">
       <canvas
         ref={canvasRef}
-        width={24}
-        height={120}
-        className="w-6"
+        className="w-3.5 h-[90%]"
       />
     </div>
   );
+
 }
