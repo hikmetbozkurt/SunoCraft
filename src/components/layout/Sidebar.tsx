@@ -150,11 +150,21 @@ function SidebarTrackItem({
 }) {
   const effectiveDuration = track.trimEnd - track.trimStart;
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onSelect();
+    }
+  };
+
   return (
-    <button
+    <div
       onClick={onSelect}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
       className={`
-        w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-left transition-all duration-100 group
+        w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-left transition-all duration-100 group cursor-pointer focus:outline-none focus:ring-1 focus:ring-violet-500/30
         ${isActive
           ? 'bg-violet-500/10 border border-violet-500/20'
           : 'border border-transparent hover:bg-white/[0.03]'
@@ -183,12 +193,12 @@ function SidebarTrackItem({
       {/* Remove */}
       <button
         onClick={(e) => { e.stopPropagation(); onRemove(); }}
-        className="flex-shrink-0 opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
+        className="flex-shrink-0 opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
       >
         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
-    </button>
+    </div>
   );
 }

@@ -22,17 +22,33 @@ export function AppInner() {
     stop: engine.stop,
   });
 
-  // Custom event listeners for toolbar actions
+  // Custom event listeners for editor actions
   useEffect(() => {
     const handleImport = () => toggleUploadModal(true);
     const handleExport = () => toggleExportDialog(true);
+    const handlePlayPause = () => engine.togglePlayPause();
+    const handleStop = () => engine.stop();
+    const handleSeek = (e: Event) => {
+      const customEvent = e as CustomEvent<number>;
+      if (typeof customEvent.detail === 'number') {
+        engine.seek(customEvent.detail);
+      }
+    };
+
     document.addEventListener('sunocraft:import', handleImport);
     document.addEventListener('sunocraft:export', handleExport);
+    document.addEventListener('sunocraft:playpause', handlePlayPause);
+    document.addEventListener('sunocraft:stop', handleStop);
+    document.addEventListener('sunocraft:seek', handleSeek);
+
     return () => {
       document.removeEventListener('sunocraft:import', handleImport);
       document.removeEventListener('sunocraft:export', handleExport);
+      document.removeEventListener('sunocraft:playpause', handlePlayPause);
+      document.removeEventListener('sunocraft:stop', handleStop);
+      document.removeEventListener('sunocraft:seek', handleSeek);
     };
-  }, [toggleUploadModal, toggleExportDialog]);
+  }, [toggleUploadModal, toggleExportDialog, engine]);
 
   return (
     <div className="flex flex-col h-screen bg-zinc-950 overflow-hidden">
@@ -40,7 +56,7 @@ export function AppInner() {
         onImport={() => toggleUploadModal(true)}
         onExport={() => toggleExportDialog(true)}
       />
-      <MainLayout analyserRef={engine.analyserRef} />
+      <MainLayout analyserRef={engine.analyserRef} onSeek={engine.seek} />
       <TransportBar
         onPlayPause={engine.togglePlayPause}
         onStop={engine.stop}

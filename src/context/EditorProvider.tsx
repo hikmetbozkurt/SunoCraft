@@ -17,7 +17,22 @@ const NON_UNDOABLE_ACTIONS = new Set([
   'SET_PANEL_SIZE',
   'UNDO',
   'REDO',
+  'RESTORE_SNAPSHOT',
 ]);
+
+/**
+ * Extracts only the undoable portions of state for snapshot comparison.
+ * This avoids saving transient UI state in the undo history.
+ */
+function takeSnapshot(state: EditorState) {
+  return {
+    tracks: state.tracks,
+    backgroundMedia: state.backgroundMedia,
+    outputFormat: state.outputFormat,
+    activeTrackId: state.activeTrackId,
+    timelineZoom: state.timelineZoom,
+  };
+}
 
 interface EditorProviderProps {
   children: ReactNode;
@@ -26,7 +41,7 @@ interface EditorProviderProps {
 export function EditorProvider({ children }: EditorProviderProps) {
   const [state, baseDispatch] = useReducer(editorReducer, initialEditorState);
 
-  // Undo/redo stacks (store snapshots of track-related state)
+  // Undo/redo stacks (store full snapshots of editor state)
   const pastRef = useRef<EditorState[]>([]);
   const futureRef = useRef<EditorState[]>([]);
 
@@ -37,20 +52,8 @@ export function EditorProvider({ children }: EditorProviderProps) {
       const previous = past[past.length - 1];
       pastRef.current = past.slice(0, -1);
       futureRef.current = [state, ...futureRef.current].slice(0, MAX_HISTORY);
-      // Restore the previous state by dispatching a special reset-like flow
-      // We'll use REORDER_TRACKS and other actions, but simpler to just
-      // force-set via a custom approach. Let's use a workaround:
-      // Dispatch RESET then re-apply. Actually, let's make the reducer
-      // handle this by storing a snapshot and using a hidden action.
-      baseDispatch({ type: 'RESET' });
-      // Re-apply previous state's tracks
-      if (previous.tracks.length > 0) {
-        baseDispatch({ type: 'ADD_TRACKS', payload: previous.tracks });
-      }
-      if (previous.backgroundMedia) {
-        baseDispatch({ type: 'SET_BACKGROUND', payload: previous.backgroundMedia });
-      }
-      baseDispatch({ type: 'SET_FORMAT', payload: previous.outputFormat });
+      // Atomic state swap — does NOT revoke Object URLs
+      baseDispatch({ type: 'RESTORE_SNAPSHOT', payload: previous });
       return;
     }
 
@@ -60,14 +63,8 @@ export function EditorProvider({ children }: EditorProviderProps) {
       const next = future[0];
       futureRef.current = future.slice(1);
       pastRef.current = [...pastRef.current, state].slice(-MAX_HISTORY);
-      baseDispatch({ type: 'RESET' });
-      if (next.tracks.length > 0) {
-        baseDispatch({ type: 'ADD_TRACKS', payload: next.tracks });
-      }
-      if (next.backgroundMedia) {
-        baseDispatch({ type: 'SET_BACKGROUND', payload: next.backgroundMedia });
-      }
-      baseDispatch({ type: 'SET_FORMAT', payload: next.outputFormat });
+      // Atomic state swap — does NOT revoke Object URLs
+      baseDispatch({ type: 'RESTORE_SNAPSHOT', payload: next });
       return;
     }
 

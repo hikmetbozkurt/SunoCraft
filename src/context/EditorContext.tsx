@@ -277,6 +277,22 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
     case 'REDO':
       return state;
 
+    // ── Snapshot Restore (undo/redo — does NOT revoke URLs) ────
+    case 'RESTORE_SNAPSHOT':
+      return {
+        ...action.payload,
+        // Preserve current UI panel sizes
+        sidebarWidth: state.sidebarWidth,
+        propertiesWidth: state.propertiesWidth,
+        previewHeight: state.previewHeight,
+        // Preserve transient UI state
+        renderState: state.renderState,
+        playback: state.playback,
+        isUploadModalOpen: state.isUploadModalOpen,
+        isExportDialogOpen: state.isExportDialogOpen,
+        isSettingsOpen: state.isSettingsOpen,
+      };
+
     // ── Reset ───────────────────────────────────────────────────
     case 'RESET':
       state.tracks.forEach(t => URL.revokeObjectURL(t.previewUrl));

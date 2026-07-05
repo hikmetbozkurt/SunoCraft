@@ -23,6 +23,7 @@ export function getFileExtension(name: string): string {
 // ─── File Type Checks ──────────────────────────────────────────
 const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.flac', '.aac', '.m4a', '.wma'];
 const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg'];
+const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.mov'];
 
 export function isAudioFile(name: string): boolean {
   return AUDIO_EXTENSIONS.includes(getFileExtension(name));
@@ -32,8 +33,12 @@ export function isImageFile(name: string): boolean {
   return IMAGE_EXTENSIONS.includes(getFileExtension(name));
 }
 
+export function isVideoFile(name: string): boolean {
+  return VIDEO_EXTENSIONS.includes(getFileExtension(name));
+}
+
 export function isSupportedFile(name: string): boolean {
-  return isAudioFile(name) || isImageFile(name);
+  return isAudioFile(name) || isImageFile(name) || isVideoFile(name);
 }
 
 // ─── Audio Duration via HTML5 Audio API ────────────────────────

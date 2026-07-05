@@ -134,5 +134,7 @@ export type EditorAction =
   // Undo / Redo
   | { type: 'UNDO' }
   | { type: 'REDO' }
+  // Snapshot restore (used by undo/redo — does NOT revoke URLs)
+  | { type: 'RESTORE_SNAPSHOT'; payload: EditorState }
   // Reset
   | { type: 'RESET' };

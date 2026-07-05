@@ -8,9 +8,10 @@ import { PreviewPanel } from '../preview/PreviewPanel';
 
 interface MainLayoutProps {
   analyserRef: React.RefObject<AnalyserNode | null>;
+  onSeek: (time: number) => void;
 }
 
-export function MainLayout({ analyserRef }: MainLayoutProps) {
+export function MainLayout({ analyserRef, onSeek }: MainLayoutProps) {
   const { state, setPanelSize } = useEditor();
 
   // ── Resize State ──────────────────────────────────────────────
@@ -115,7 +116,7 @@ export function MainLayout({ analyserRef }: MainLayoutProps) {
           className="flex-shrink-0 border-b border-white/[0.04] relative"
           style={{ height: `${state.previewHeight}%` }}
         >
-          <PreviewPanel analyserRef={analyserRef} />
+          <PreviewPanel analyserRef={analyserRef} onSeek={onSeek} />
           {/* Vertical Resize Handle */}
           <div
             className="absolute bottom-0 left-0 right-0 h-1 cursor-row-resize hover:bg-violet-500/30 transition-colors z-10"
@@ -129,13 +130,6 @@ export function MainLayout({ analyserRef }: MainLayoutProps) {
           <div className="flex-1 min-h-0">
             <Timeline />
           </div>
-
-          {/* Waveform Editor (detail view for selected track) */}
-          {state.activeTrackId && (
-            <div className="flex-shrink-0 border-t border-white/[0.04]" style={{ height: '240px' }}>
-              <WaveformEditor />
-            </div>
-          )}
         </div>
       </div>
 

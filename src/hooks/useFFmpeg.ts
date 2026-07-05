@@ -5,18 +5,20 @@ import { useEditor } from './useEditor';
 import { buildAudioConcatArgs, buildMergeAudioArgs, buildVideoArgs } from '../utils/ffmpegCommands';
 
 const CORE_VERSION = '0.12.9';
-const BASE_URL = `https://unpkg.com/@ffmpeg/core-mt@${CORE_VERSION}/dist/esm`;
+const BASE_URL = `https://unpkg.com/@ffmpeg/core@${CORE_VERSION}/dist/esm`;
 
 export function useFFmpeg() {
   const ffmpegRef = useRef<FFmpeg | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const { state, setRenderState, sortedTracks } = useEditor();
+  const logsRef = useRef<string[]>([]);
 
   // ─── Load FFmpeg core ────────────────────────────────────────
   const load = useCallback(async () => {
     if (loaded || loading) return;
     setLoading(true);
+    logsRef.current = [];
     setRenderState({ status: 'loading-ffmpeg', progress: 0, error: null, logs: [] });
 
     try {
@@ -29,28 +31,39 @@ export function useFFmpeg() {
         setRenderState({ progress: Math.min(pct, 100) });
       });
 
-      // Log listener
+      // Log listener — use ref to avoid stale closure
       ffmpeg.on('log', ({ message }) => {
-        setRenderState({
-          logs: [...(state.renderState.logs || []), message].slice(-50),
-        });
+        logsRef.current = [...logsRef.current, message].slice(-50);
+        setRenderState({ logs: logsRef.current });
       });
 
       await ffmpeg.load({
         coreURL: await toBlobURL(`${BASE_URL}/ffmpeg-core.js`, 'text/javascript'),
         wasmURL: await toBlobURL(`${BASE_URL}/ffmpeg-core.wasm`, 'application/wasm'),
-        workerURL: await toBlobURL(`${BASE_URL}/ffmpeg-core.worker.js`, 'text/javascript'),
       });
 
       setLoaded(true);
       setRenderState({ status: 'idle', progress: 0 });
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'FFmpeg yüklenemedi';
+      const message = err instanceof Error ? err.message : 'Failed to load FFmpeg';
       setRenderState({ status: 'error', error: message });
     } finally {
       setLoading(false);
     }
-  }, [loaded, loading, setRenderState, state.renderState.logs]);
+  }, [loaded, loading, setRenderState]);
+
+  // ─── Helper: cleanup temp files from virtual FS ─────────────
+  const cleanupFS = useCallback(async (filenames: string[]) => {
+    const ffmpeg = ffmpegRef.current;
+    if (!ffmpeg) return;
+    for (const name of filenames) {
+      try {
+        await ffmpeg.deleteFile(name);
+      } catch {
+        // file may not exist, ignore
+      }
+    }
+  }, []);
 
   // ─── Render (process all tracks) ────────────────────────────
   const render = useCallback(async () => {
@@ -64,30 +77,56 @@ export function useFFmpeg() {
     const tracks = sortedTracks;
     if (tracks.length === 0) return;
 
-    setRenderState({ status: 'processing', progress: 0, error: null, outputUrl: null });
+    logsRef.current = [];
+    setRenderState({ status: 'processing', progress: 0, error: null, outputUrl: null, logs: [] });
+
+    const writtenFiles: string[] = [];
+
+    // Map audio tracks to safe virtual ASCII names
+    const virtualTracks = tracks.map((track, i) => {
+      const lastDot = track.name.lastIndexOf('.');
+      const ext = lastDot >= 0 ? track.name.substring(lastDot) : '.mp3';
+      return {
+        ...track,
+        name: `input_audio_${i}${ext}`,
+      };
+    });
+
+    const { outputFormat, backgroundMedia } = state;
+
+    // Map background media to safe virtual ASCII name
+    const bgLastDot = backgroundMedia ? backgroundMedia.name.lastIndexOf('.') : -1;
+    const bgExt = bgLastDot >= 0 ? backgroundMedia!.name.substring(bgLastDot) : '.png';
+    const virtualBg = backgroundMedia ? {
+      ...backgroundMedia,
+      name: `input_bg${bgExt}`,
+    } : null;
 
     try {
-      // Write all audio files to FFmpeg virtual filesystem
-      for (const track of tracks) {
-        const fileData = await fetchFile(track.file);
-        await ffmpeg.writeFile(track.name, fileData);
+      // Write all audio files to FFmpeg virtual filesystem with safe ASCII names
+      for (let i = 0; i < tracks.length; i++) {
+        const fileData = await fetchFile(tracks[i].file);
+        const virtualName = virtualTracks[i].name;
+        await ffmpeg.writeFile(virtualName, fileData);
+        writtenFiles.push(virtualName);
       }
 
-      const { outputFormat, backgroundMedia } = state;
-
-      if (outputFormat === '.mp4' && backgroundMedia) {
+      if (outputFormat === '.mp4' && virtualBg) {
         // ── Video mode: merge audio first, then combine with background ──
-        // Write background file
-        const bgData = await fetchFile(backgroundMedia.file);
-        await ffmpeg.writeFile(backgroundMedia.name, bgData);
+        // Write background file with safe ASCII name
+        const bgData = await fetchFile(virtualBg.file);
+        await ffmpeg.writeFile(virtualBg.name, bgData);
+        writtenFiles.push(virtualBg.name);
 
         // Step 1: Merge audio → temp_audio.wav
-        const mergeArgs = buildMergeAudioArgs(tracks);
+        const mergeArgs = buildMergeAudioArgs(virtualTracks);
         await ffmpeg.exec(mergeArgs);
+        writtenFiles.push('temp_audio.wav');
 
         // Step 2: Background + merged audio → output.mp4
-        const videoArgs = buildVideoArgs(tracks, backgroundMedia);
+        const videoArgs = buildVideoArgs(virtualTracks, virtualBg);
         await ffmpeg.exec(videoArgs);
+        writtenFiles.push('output.mp4');
 
         // Read output
         const data = await ffmpeg.readFile('output.mp4');
@@ -102,10 +141,11 @@ export function useFFmpeg() {
         });
       } else {
         // ── Audio-only mode ──
-        const args = buildAudioConcatArgs(tracks, outputFormat);
+        const args = buildAudioConcatArgs(virtualTracks, outputFormat);
         await ffmpeg.exec(args);
 
         const outputName = `output${outputFormat}`;
+        writtenFiles.push(outputName);
         const data = await ffmpeg.readFile(outputName);
 
         const mimeMap: Record<string, string> = {
@@ -127,10 +167,13 @@ export function useFFmpeg() {
         });
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Render hatası oluştu';
+      const message = err instanceof Error ? err.message : 'Render error occurred';
       setRenderState({ status: 'error', progress: 0, error: message });
+    } finally {
+      // Clean up temp files from the virtual filesystem
+      await cleanupFS(writtenFiles);
     }
-  }, [load, sortedTracks, state, setRenderState]);
+  }, [load, sortedTracks, state, setRenderState, cleanupFS]);
 
   // ─── Download output ─────────────────────────────────────────
   const downloadOutput = useCallback(() => {

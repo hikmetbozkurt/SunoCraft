@@ -80,6 +80,12 @@ export function Timeline() {
         <div className="flex items-center gap-2">
           <h3 className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">Timeline</h3>
           <span className="text-[10px] text-zinc-600">{sortedTracks.length} clips</span>
+          <button
+            onClick={() => toggleUploadModal(true)}
+            className="flex items-center gap-1 ml-2 px-2 py-0.5 text-[9px] font-medium text-violet-400 bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 rounded transition-all"
+          >
+            + Add Song
+          </button>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-zinc-600">Ctrl+Scroll to zoom</span>

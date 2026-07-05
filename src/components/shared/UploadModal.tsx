@@ -4,6 +4,7 @@ import { Button } from './Button';
 import {
   isAudioFile,
   isImageFile,
+  isVideoFile,
   isSupportedFile,
   getAudioDuration,
   generateId,
@@ -32,7 +33,7 @@ export function UploadModal() {
       }
 
       const audioFiles = fileArray.filter(f => isAudioFile(f.name));
-      const imageFiles = fileArray.filter(f => isImageFile(f.name));
+      const bgFiles = fileArray.filter(f => isImageFile(f.name) || isVideoFile(f.name));
 
       // Process audio files
       if (audioFiles.length > 0) {
@@ -67,9 +68,9 @@ export function UploadModal() {
         if (newTracks.length > 0) addTracks(newTracks);
       }
 
-      // Process image/background — use the last one
-      if (imageFiles.length > 0) {
-        const file = imageFiles[imageFiles.length - 1];
+      // Process background media — use the last one
+      if (bgFiles.length > 0) {
+        const file = bgFiles[bgFiles.length - 1];
         const bg: BackgroundMedia = {
           file,
           type: getMediaType(file.name),
@@ -80,7 +81,7 @@ export function UploadModal() {
       }
 
       setProcessing(false);
-      if (audioFiles.length > 0 || imageFiles.length > 0) {
+      if (audioFiles.length > 0 || bgFiles.length > 0) {
         toggleUploadModal(false);
       }
     },
@@ -136,7 +137,7 @@ export function UploadModal() {
           <div>
             <h2 className="text-xl font-semibold text-white">Upload Files</h2>
             <p className="text-sm text-zinc-400 mt-1">
-              Audio files (.mp3, .wav) and background media (.png, .jpg, .gif)
+              Audio files (.mp3, .wav) and background media (.png, .jpg, .gif, .mp4, .webm)
             </p>
           </div>
           <button
@@ -183,7 +184,7 @@ export function UploadModal() {
               {isDragging ? 'Drop files here...' : 'Drag & drop files or click to browse'}
             </p>
             <p className="text-xs text-zinc-500 mt-1">
-              MP3, WAV, OGG, PNG, JPG, GIF
+              MP3, WAV, OGG, PNG, JPG, GIF, MP4, WEBM
             </p>
           </div>
 
@@ -206,7 +207,7 @@ export function UploadModal() {
           ref={fileInputRef}
           type="file"
           multiple
-          accept=".mp3,.wav,.ogg,.flac,.aac,.m4a,.png,.jpg,.jpeg,.gif,.webp"
+          accept=".mp3,.wav,.ogg,.flac,.aac,.m4a,.png,.jpg,.jpeg,.gif,.webp,.mp4,.webm,.mov"
           onChange={handleFileSelect}
           className="hidden"
         />
@@ -226,7 +227,7 @@ export function UploadModal() {
           </div>
           <div className="flex items-center gap-2 text-xs text-zinc-500">
             <div className="w-2 h-2 rounded-full bg-violet-500/60" />
-            Images are set as background
+            Background media (images, GIFs, videos)
           </div>
         </div>
       </div>
